@@ -1,5 +1,5 @@
 const axios = require('axios').default;
-import Notiflix from 'notiflix';
+import Notiflix, { Notify } from 'notiflix';
 import galleryTpl from '../src/templates/gallery.hbs';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
@@ -25,16 +25,29 @@ loadMoreBtn.refs.button.addEventListener('click', onLoadMore);
 async function onSearch(e) {
  e.preventDefault();
  clearImagesGallery();
- newsApiService.searchQuery = e.currentTarget.elements.searchQuery.value;
+  newsApiService.searchQuery = e.currentTarget.elements.searchQuery.value;
+  
+  if (newsApiService.searchQuery === '') {
+    showFailure();
+    return;
+  }
  
   loadMoreBtn.show();
   newsApiService.resetPage();
   loadMoreBtn.disable();
 
-  const image = await newsApiService.fetchImages();
+  try {
+    const image = await newsApiService.fetchImages();
   renderImages(image);
   const btn = await loadMoreBtn.enable();
-   lightbox.refresh();
+  lightbox.refresh();
+} catch (error) {
+  console.log(error.message);
+  }
+};
+
+function showFailure() {
+  Notify.failure('Sorry, there are no images matching your search query. Please try again.');
 }
 
 function renderImages(image) {
